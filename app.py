@@ -20,25 +20,30 @@ solara.Title("Snack Jack")
 @solara.component
 def Menu():
     solara.AppBarTitle("Snack Jack")
-    with solara.Column():
-        solara.Head("starters")
+    with solara.Card("Starters"):
+        #solara.Head("starters")
         # Iterate over the food items fetched from Firebase
-        for name, price in food_items_docs.items():
-            with solara.Columns([7,5,7]):
-                solara.Text(name)
-                solara.Text(str(price))
-                # Update the cart_items state when the button is clicked
-                solara.Button(icon_name="mdi-cart", on_click=lambda: cart_items.set(cart_items.get() + [(name, price)]))
+        with solara.Columns([7,5,7]):
+            solara.Text("Food item")
+            solara.Text("Price")
+            solara.Text("Add to cart")
+        for name, details in food_items_docs.items():
+            if details['availability']:  # Only display items that are available
+                with solara.Columns([7,5,7]):
+                    solara.Text(name)
+                    solara.Text(str(details['price']))
+                    # Update the cart_items state when the button is clicked
+                    solara.Button(icon_name="mdi-cart", on_click=(lambda item_name=name, item_price=details['price']: cart_items.set(cart_items.get() + [(item_name, item_price)])))
 
 @solara.component
 def Cart():
-    with solara.Column():
-        solara.Markdown("Cart")
+    with solara.Card("Cart"):
+        #solara.Markdown("Cart")
         # Display the items in the cart
         for item, price in cart_items.get():
             solara.Text(f"{item}: {price}")
 
 routes = [
     solara.Route(path="/", component=Menu, label="Menu"),
-    solara.Route(path="/cart", component=Cart, label="Cart"),
+    solara.Route(path="Cart", component=Cart, label="Cart"),
 ]
