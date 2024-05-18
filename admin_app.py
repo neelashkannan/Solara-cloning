@@ -1,0 +1,91 @@
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import db
+from functools import partial
+import solara
+
+# Use a service account
+if not firebase_admin._apps:
+    cred = credentials.Certificate("testing.json")
+    firebase_admin.initialize_app(cred, {
+        'databaseURL': 'https://snack-jack-e004a-default-rtdb.asia-southeast1.firebasedatabase.app/'
+    })
+
+# Reference to food items in Firebase
+food_items_ref = db.reference('Starters')
+
+# Fetch all food items from Firebase
+def fetch_food_items():
+    return food_items_ref.get()
+
+# Update the availability of a food item
+def update_availability(food_item, value):
+    food_items_ref.child(food_item).update({'availability': value})
+
+# Delete a food item
+def delete_food_item(food_item):
+    food_items_ref.child(food_item).delete()
+
+# Create a state for the new food item and price
+new_food_item = solara.reactive("")
+new_price = solara.reactive("")
+availability = solara.reactive("")
+
+show_message = solara.reactive(True)
+disable = solara.reactive(False)
+solara.Title("Add Food Items")
+text1 = solara.reactive(" ")
+text2 = solara.reactive(" ")
+continuous_update = solara.reactive(True)
+
+def add_food_item():
+    # Add the new food item to Firebase
+    food_items_ref.update({
+        new_food_item.get(): {
+            'price': int(new_price.get()),
+            'availability': availability.get()
+        }
+    })
+    # Clear the input fields
+    new_food_item.set("")
+    new_price.set("")
+    availability.set("")
+
+@solara.component
+def FoodItemsPage():
+    global availability
+    with solara.AppBarTitle():
+        solara.Text("Snack Jack")
+    with solara.Column(align="center"):
+        with solara.Card("Starters", margin=10):
+           
+            food_items = fetch_food_items()
+        #with solara.Card("Starters", elevation=5, margin=5):
+            with solara.Row(gap="10px", justify="space-around"):
+                solara.Text("Food Item")
+                solara.Text("Price")
+                solara.Text("Availability")
+                solara.Text("Delete")
+            for food_item, details in food_items.items():
+                price = details['price']
+                availability = details['availability']
+                with solara.Row(gap="30px", justify="space-around"):
+                    solara.Text(food_item)
+                    solara.Text(str(price))
+                    solara.Switch(value=availability, on_value=partial(update_availability, food_item))
+                    solara.Button(icon_name="mdi-delete", on_click=partial(delete_food_item, food_item))
+            with solara.Row(gap="10px", justify="space-around"):
+                    solara.Text("Food Item")
+                    solara.Text("Price")
+                    solara.Text("Availability")
+                    solara.Text("Add to Menu")
+            with solara.Columns([12,8,8,12]):
+                    solara.InputText("Enter food item name", value=new_food_item, continuous_update=continuous_update.value)              
+                    solara.InputText("Enter price", value=new_price, continuous_update=continuous_update.value)
+                    solara.Switch(label=" ", value=availability, disabled=disable.value)
+                    solara.Button(icon_name="mdi-book-plus", on_click=add_food_item)
+
+routes = [
+    solara.Route(path="/", component=FoodItemsPage, label="Food Items Page"),
+]
+
