@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 8765
 
 # Run your application when the container launches
-CMD ["python", "admin_app.py"]
+CMD solara run admin_app.py
