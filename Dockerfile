@@ -11,7 +11,7 @@ ADD . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Make port 80 available to the world outside this container
-EXPOSE 8765
+EXPOSE 8000
 
 # Run your application when the container launches
 CMD ["solara", "run", "admin_app.py", "--host", "0.0.0.0"]
